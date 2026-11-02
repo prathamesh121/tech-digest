@@ -10,3 +10,5 @@ scripts/fetch_digest.py: fetches stories and writes the day's file (standard lib
 Run locally
 python scripts/fetch_digest.py
 
+<!-- latest -->
+**Latest:** [2026-11-02](digest/2026/11/2026-11-02.md)
