@@ -2,8 +2,11 @@ name: Update tech digest
 
 on:
   schedule:
-    # Every day at 04:30 UTC (10:00 IST). GitHub may delay scheduled runs a bit.
+    # Three chances a day; each run only goes ahead some of the time (see the
+    # "Decide whether to run" step), so the number of updates varies day to day.
     - cron: "30 4 * * *"
+    - cron: "15 10 * * *"
+    - cron: "45 15 * * *"
   workflow_dispatch: # lets you run it by hand from the Actions tab
 
 permissions:
@@ -17,16 +20,30 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
+      - name: Decide whether to run
+        id: gate
+        # Manual runs always go ahead; scheduled runs go ahead 55% of the time.
+        run: |
+          if [ "${{ github.event_name }}" = workflow_dispatch ] || [ $((RANDOM % 100)) -lt 55 ]; then
+            echo go=true >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping this slot"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.go == 'true'
 
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.go == 'true'
         with:
           python-version: "3.12"
 
       - name: Fetch today's top stories
+        if: steps.gate.outputs.go == 'true'
         run: python scripts/fetch_digest.py
 
       - name: Commit as the repo owner
+        if: steps.gate.outputs.go == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -38,5 +55,5 @@ jobs:
           git config user.email "${OWNER_ID}+${OWNER}@users.noreply.github.com"
           git add digest README.md
           git diff --cached --quiet && exit 0
-          git commit -m "digest: $(date -u +%Y-%m-%d)"
+          git commit -m "digest: $(date -u +'%Y-%m-%d %H:%M') UTC"
           git push
