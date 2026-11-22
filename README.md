@@ -11,4 +11,4 @@ Run locally
 python scripts/fetch_digest.py
 
 <!-- latest -->
-**Latest:** [2026-11-21](digest/2026/11/2026-11-21.md)
+**Latest:** [2026-11-22](digest/2026/11/2026-11-22.md)
